@@ -17,25 +17,27 @@ int main(void) {
 	DDRA = 0x00;	PORTA = 0xFF;
 	DDRC = 0xFF;	PORTC = 0x00;
 
-	unsigned char cntavail = 0x00;
+	unsigned char cntavail;
 
     /* Insert your solution below */
     while (1) 
     {
-	    //don't change PINA value
-	    unsigned char temp = PINA;
+	    cntavail = 0x00;
 
-	    //check PA3-PA0 one by one
-	    for(int i = 0; i < 4; i++)
-	    {
-		//if bit != 1 space is available
-		if(!(temp & 0x01))
-			cntavail++;
+	    //!PA0
+	    if( !(PINA & 0x01) )
+		    cntavail++;
+	    //!PA1
+	    if( !(PINA & 0x02) )
+		    cntavail++;
+	    //!PA2
+	    if( !(PINA & 0x04) )
+		   cntavail++;
+	    //!PA3
+	    if( !(PINA & 0x08) )
+		   cntavail++;
 
-		//shift one after checking first bit
-		temp = temp >> 1;
-	    }
-	    PORTC = cntavail;
+	    PORTC = cntavail;   
     }
     return 1;
 }
