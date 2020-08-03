@@ -20,11 +20,12 @@ int main(void) {
     /* Insert your solution below */
     while (1) 
     {
-	   //PA0 and !PA1
-	   if(PINA == 0x01)
-		   PORTB = PINA;
-	   else
-		   PORTB = 0x00;
+	   //PA0 and PA1
+	   garageDoor = PINA & 0x01;
+	   lightSensor = PINA & 0x02;
+	  
+	   //PORTB = !PA1 & PA0
+	   PORTB = !lightSensor & garageDoor;
     }
     return 1;
 }
