@@ -1,7 +1,7 @@
 /*	Author: lab
  *  Partner(s) Name: Keshav Kunver
  *	Lab Section:
- *	Assignment: Lab #2  Exercise #2
+ *	Assignment: Lab #2  Exercise #1
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -22,7 +22,7 @@ int main(void) {
     {
 	   //PA0 and !PA1
 	   if(PINA == 0x01)
-		   PORTB = 0x01;
+		   PORTB = PINA;
 	   else
 		   PORTB = 0x00;
     }
