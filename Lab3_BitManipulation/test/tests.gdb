@@ -1,4 +1,4 @@
-# Test file for "Lab2_introToAVR"
+# Test file for "Lab3_BitManipulation"
 
 
 # commands.gdb provides the following functions for ease:
