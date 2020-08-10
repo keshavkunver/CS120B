@@ -19,8 +19,7 @@ unsigned long _avr_timer_M = 1; // Start count from here, down to 0. Default 1ms
 unsigned long _avr_timer_cntcurr = 0; // Current internal count of 1ms ticks
 
 
-unsigned char button;
-enum Light_States { Start, B_zero, B_one, B_two, Button_Press } state;
+enum Light_States { Start, B_zero, B_one, B_two } state;
 
 // These settings can be changed to create a timer with a different granularity than 
 // the 1ms described here. There are also 3 other timers (1 16-bit, 2 8-bit) on the
@@ -77,7 +76,7 @@ void TimerSet(unsigned long M) {
     _avr_timer_cntcurr = _avr_timer_M;
 }
 
-void Light_Game()
+void Light_Blink()
 {
 	switch(state)	//Transitions
 	{
@@ -88,13 +87,10 @@ void Light_Game()
 			state = B_one;
 			break;
 		case B_one:
-			state = button ? Button_Press : B_two;
+			state = B_two;
 			break;
 		case B_two:
 			state = B_one;
-			break;
-		case Button_Press:
-			state = button ? Button_Press : B_zero;
 			break;
 		default:
 			state = Start;
@@ -115,9 +111,6 @@ void Light_Game()
 		case B_two:
 			PORTB = 0x04;
 			break;
-		case Button_Press:
-			PORTB = 0x02;
-			break;
 		default:
 			break;
 	}
@@ -126,19 +119,17 @@ void Light_Game()
 int main(void) 
 {
     /* Insert DDR and PORT initializations */
-	DDRA = 0x00;	DDRA = 0xFF;
+	//DDRA = 0x00;	DDRA = 0xFF;
 	DDRB = 0xFF;	DDRB = 0x00;
 
-	TimerSet(300);
+	TimerSet(1000);
 	TimerOn();
 	
     /* Insert your solution below */
     while (1) 
     {
-	button = ~PINA & 0x01;
-
 	//one tick
-	Light_Game();
+	Light_Blink();
 
 	//wait for period
 	while(!TimerFlag);
