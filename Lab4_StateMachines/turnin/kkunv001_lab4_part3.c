@@ -12,70 +12,67 @@
 #include "simAVRHeader.h"
 #endif
 
-enum Light_States { Start, Init, Inc, Inc_Wait, Dec, Dec_Wait, Off  } state;
+enum Light_States { Start, Init, Check_Num, Check_Y, Wait_Y, Unlock,  } state;
 
 //unsigned char button1;
 //unsigned char button2;
 
 //skeleton code from zyBooks
-void TickFct_Lights()
+void TickFct_Lock()
 {
   switch(state)  // Transitions
   {   
 	case Start:
         	state = Init;
         	break;
-
-     	case Init:
-        	if( PINA & 0x01 ) {
-			state = Inc;
-		}
-        	else if( PINA & 0x02 ) {
-			state = Dec;
-		}
-		else if ( PINA & 0x03 ) {
-			state = Off;
+	
+	case Init:
+		if(PINA & 0x04) {
+			state = Check_Num;
 		}
 		break;
 
-	case Inc:
-		state = Inc_Wait;
-	
-	case Inc_Wait:
-		if(PINA & 0x01) {
-			state = Inc_Wait;
+	case Check_Num:
+		if(PINA == 0x00) {
+			state = Check_Y;
 		}
-		else if(PINA & 0x03) {
-			state = Off;
+		else if(PINA == 0x04) {
+			state = Check_Num;
 		}
-		else if(PINA == 0x00) {
+		else {
 			state = Init;
 		}
 		break;
 
-	case Dec:
-		state = Dec_Wait;
-		break;
-
-	case Dec_Wait:
+	case Check_Y:
 		if(PINA & 0x02) {
-			state = Dec_Wait;
-		}
-		else if(PINA & 0x03) {
-			state = Off;
+			state = Wait_Y;
 		}
 		else if(PINA == 0x00) {
+			state = Check_Y;
+		}
+		else {
 			state = Init;
 		}
-		break; 
-	
+		break;
 
-	case Off:
-		if( PINA == 0x00 ) {
+	case Wait_Y:
+		if(PINA == 0x00) {
+			state = Unlock;
+		}
+		else if( PINA == 0x02) {
+			state = Wait_Y;
+		}
+		else {
+			state = Init;
+		}
+
+	case Unlock:
+		if(PINA & 0x80) {
 			state = Init;
 		}
 		else {
-			state = Off;
+			state = Unlock;
 		}
 		break;
 
@@ -86,38 +83,29 @@ void TickFct_Lights()
   switch(state) // State actions
   {   
      	case Start:
-        	break;
-	
+        	break;		
+
 	case Init:
-		break;
-	
-	case Inc:
-		if(PORTC >= 0x09){
-			PORTC = 0x09;
-		}
-		else {
-			PORTC += 0x01;
-		}
-		break;
-
-	case Inc_Wait:
-		break;
-
-	case Dec:
-		if(PORTC <= 0x00) {
-			PORTC = 0x00;
-		}
-		else {
-			PORTC -= 0x01;
-		}
-		break;
-	
-	case Dec_Wait:
-		break;
-
-	case Off:
+		PORTB = 0x00;
 		PORTC = 0x00;
-		break;		
+		break;
+
+	case Check_Num:
+		PORTC = 0x01;
+		break;
+
+	case Check_Y:
+		PORTC = 0x02;
+		break;
+
+	case Wait_Y:
+		PORTC = 0x03;
+		break;
+
+	case Unlock:
+		PORTB = 0x01;
+		PORTC = 0x04;
+		break;
 
      	default:
         	break;
@@ -131,14 +119,14 @@ int main(void)
 	//DDRC = 0xFF;	PORTC = 0x00;
 
     	state = Start;
-	PORTC = 0x07;
+	PORTC = 0x00;
 	//button1 = ~PINA & 0x01;
     	//button2 = ~PINA & 0x02;
 
     /* Insert your solution below */
     while (1) 
     {
-	TickFct_Lights();
+	TickFct_Lock();
     }
     return 1;
 }
