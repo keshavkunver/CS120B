@@ -1,8 +1,7 @@
-
 /*	Author: lab
  *  Partner(s) Name: 
  *	Lab Section:
- *	Assignment: Lab #7  Exercise #3
+ *	Assignment: Lab #7  Exercise #1
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -23,10 +22,11 @@ int main(void)
     /* Insert DDR and PORT initializations */
 	DDRA = 0x00;	PORTA = 0xFF;	
 	DDRB = 0xFF;	PORTB = 0x00;
-	
-	const unsigned short MAX = 975;	// =  7,8 LEDS = 2^6 + 2^7
-					// = 64 + 128 = 192
+	DDRD = 0xFF;	PORTD = 0x00;
+
 	unsigned short my_short;
+	unsigned char low_B;
+	unsigned char high_D;
 
 	ADC_init();
 
@@ -35,12 +35,12 @@ int main(void)
 	{
 		my_short = ADC;
 
-		if(my_short >= MAX/2) {
-			PORTB = 0x01;
-		}
-		else {
-			PORTB = 0x00;
-		}	
+		low_B = (char) my_short;
+		high_D = (char) (my_short >> 8); 
+
+		PORTB = low_B;
+		PORTD = high_D;
+		
     	}
     return 1;
 }
