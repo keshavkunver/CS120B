@@ -1,6 +1,6 @@
 # University of California, Riverside
 # CS120B Makefile
-MMCU=atmega1284
+MMCU=atmega1284p
 FREQ=8000000
 
 PATHB=build/
@@ -81,7 +81,7 @@ disableJTAG:
 	@rm -f $(HTXT)
 
 program: $(PATHB)main.hex
-	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(MEMORY):w:$< || $(ADDVERBOSITY)
+	$(PROGRAM) -c $(PROGRAMMER) -p $(MMCU) $(VERBOSITY) -U $(MEMORY):w:$<
 
 debug: $(PATHO)main.elf
 	@sed -i "s/break main.c:.*/break main.c:$(WHILELINENO)/" $(INITDEBUGGER)
