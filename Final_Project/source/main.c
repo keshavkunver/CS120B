@@ -17,12 +17,20 @@
 
 
 unsigned char currLetter;	//letter to be outputted
-unsigned char myIndex = 0;	//index for netID array
-const unsigned char netID[8] = {'k','k','u','n','v', '0', '0', '1', "\0"};	//netID
+unsigned char myIndex = 0;	//index for alphabet array
+const unsigned char alphabet[26] = {'a','b','c','d','e', 'f', 'g', 'h', 'i',
+					'j','k','l','m','n','o', 'p','q', 'r',
+					's','t','u','v','w','x','y','z'};
 
-enum CharStates {Char_Init, Get};
+unsigned char button1;
+unsigned char button2;
+unsigned char button3;
+unsigned char cursor = 1;
+unsigned char resetFlag = 0;
 
-enum OutputStates {Out_Init, Display, Off};
+enum CharStates {Char_Init, Wait, Increment, Decrement, Next};
+
+enum OutputStates {Out_Init, Display};
 
 
 //Gets input
@@ -31,17 +39,67 @@ int Char_Tick(int state)
 	switch(state)	//Transitions
 	{
 		case Char_Init:
-			state = Get;
+			state = Wait;
 			break;
-		case Get:
-			//set currLetter unless current index is null terminal character
-			if(currLetter != '\0')
+		case Wait:
+			if(button1 && !button2)
 			{
-				state = Get;
+				state = Increment;
+			}
+			else if(!button1 && button2)
+			{
+				state = Decrement;
+			}
+			
+			else if(button1 && button2)
+			{
+				state = Char_Init;
 			}
 			else
 			{
+				state = Wait;
+			}
+			break;
+		case Increment:
+			if(button1 && button2)
+			{
 				state = Char_Init;
+			}
+			else if(button1 && !button2)
+			{
+				state = Increment;				
+			}
+			else if(!button1)
+			{
+				state = Wait;
+			}
+			break;
+		case Decrement:
+			if(button1 && button2)
+			{
+				state = Char_Init;
+			}
+			else if(!button1 && button2)
+			{
+				state = Decrement;				
+			}
+			else if(!button2)
+			{
+				state = Wait;
+			}
+			break;
+		case Next:
+			if(button1 && button2)
+			{
+				state = Char_Init;
+			}
+			else if(button3)
+			{
+				state = Next;
+			}
+			else if(!button3)
+			{
+				state = Wait;
 			}
 			break;
 		default:
@@ -53,10 +111,29 @@ int Char_Tick(int state)
 	{
 		case Char_Init:
 			myIndex = 0;
+			cursor = 1;
+			resetFlag = 1;
 			break;
-		case Get:
-			currLetter = netID[myIndex];
-			myIndex++;
+		case Wait:
+			resetFlag = 0;
+			currLetter = alphabet[myIndex];
+			break;
+		case Increment:
+			if(currLetter != 'a')
+			{
+				myIndex--;
+			}
+			currLetter = alphabet[myIndex];
+			break;
+		case Decrement:
+			if(currLetter != 'z')
+			{
+				myIndex++;
+			}
+			currLetter = alphabet[myIndex];
+			break;
+		case Next:
+			cursor++;
 			break;
 		default:
 			state = Char_Init;
@@ -66,7 +143,7 @@ int Char_Tick(int state)
 	return state;
 }
 
-//Outputs the answer onto the board
+//Outputs the character onto the board
 int LCD_Tick(int state)
 { 
 	switch(state)	//Transitions
@@ -75,18 +152,14 @@ int LCD_Tick(int state)
 			state = Display;
 			break;
 		case Display:
-			//output as long as index is not null terminal character
-			if(currLetter != '\0')
+			if(resetFlag == 0)
 			{
 				state = Display;
 			}
-			else
+			else if(resetFlag == 1)
 			{
-				state = Off;
+				state = Out_Init;
 			}
-			break;
-		case Off:
-			state = Out_Init;
 			break;
 		default:
 			state = Out_Init;
@@ -96,13 +169,14 @@ int LCD_Tick(int state)
 	switch(state)	//Actions
 	{
 		case Out_Init:
+			LCD_ClearScreen();
 			LCD_Cursor(1);
+			LCD_WriteData('a');
 			break;
-		case Display:	//Display the current letter
+		case Display:	//Display the current letter at desired cursor
+			LCD_Cursor(cursor);
 			LCD_WriteData(currLetter);
 			break;
-		case Off:	//Remove display
-			LCD_ClearScreen();
 		default:
 			break;
 	}
@@ -114,6 +188,7 @@ int main(void)
     /* Insert DDR and PORT initializations */
 	DDRC = 0xFF;	PORTC = 0x00;
 	DDRD = 0xFF;	PORTD = 0x00;
+	DDRA = 0x00;	PORTA = 0xFF;
 	
 	unsigned char i;
 
@@ -124,24 +199,29 @@ int main(void)
 
 	//Task1
 	task1.state = 0;	//Task initial state
-	task1.period = 250;	//Task Period
+	task1.period = 500;	//Task Period
 	task1.elapsedTime = task1.period; //Task current elapsed time
 	task1.TickFct = &LCD_Tick;
 
 	//Task2
 	task2.state = 0;	//Task initial state
-	task2.period = 250;	//Task Period
+	task2.period = 500;	//Task Period
 	task2.elapsedTime = task2.period; //Task current elapsed time
 	task2.TickFct = &Char_Tick;
 
-	//Set on/off flashing to 1 second
-	TimerSet(250);
+	//GCD
+	TimerSet(500);
 	TimerOn();
 
 	LCD_init();
     /* Insert your solution below */
     while (1) 
     {
+	//button initializations
+	button1 = ~PINA & 0x01;
+	button2 = ~PINA & 0x02;
+	button3 = ~PINA & 0x04;
+
 	for ( i = 0; i < numTasks; i++ ) 
 	{
    		if ( tasks[i]->elapsedTime == tasks[i]->period ) 

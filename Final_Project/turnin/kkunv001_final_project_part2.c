@@ -134,7 +134,7 @@ int main(void)
 	task2.elapsedTime = task2.period; //Task current elapsed time
 	task2.TickFct = &Char_Tick;
 
-	//Set on/off flashing to 1 second
+	//GCD
 	TimerSet(250);
 	TimerOn();
 
